@@ -9,7 +9,7 @@ class PaginationView extends View {
     this._parentElement.addEventListener('click', function (e) {
       const btn = e.target.closest('.btn--inline');
 
-      if (!btn) return;
+      if (!btn || btn.classList.contains('pagination__available_pages')) return;
 
       console.log(+btn.dataset.goto);
       handler(+btn.dataset.goto);
@@ -24,9 +24,12 @@ class PaginationView extends View {
     );
     console.log(numPages);
     const btnPrev = `
-        <button class="btn--inline pagination__btn--prev" data-goto="${
-          curPage - 1
-        }">
+        <button class="btn--inline pagination__btn--prev ${
+          (curPage === numPages && numPages > 1) ||
+          (curPage > 1 && numPages > curPage)
+            ? ''
+            : 'hidden'
+        }" data-goto="${curPage - 1}">
         <svg class="search__icon">
             <use href="${icons}#icon-arrow-left"></use>
         </svg>
@@ -34,30 +37,38 @@ class PaginationView extends View {
         </button>
     `;
     const btnNext = `
-        <button class="btn--inline pagination__btn--next" data-goto="${
-          curPage + 1
-        }">
+        <button class="btn--inline pagination__btn--next ${
+          (curPage === 1 && numPages > 1) || (curPage > 1 && numPages > curPage)
+            ? ''
+            : 'hidden'
+        }" data-goto="${curPage + 1}">
         <span>Page ${curPage + 1}</span>
         <svg class="search__icon">
             <use href="${icons}#icon-arrow-right"></use>
         </svg>
         </button>
     `;
+    const availableSitesBtn = `
+      <button class="btn--inline pagination__available_pages"
+      <span>Available pages: ${numPages}</span>
+      </button>
+    `;
 
+    return btnPrev + availableSitesBtn + btnNext;
     // Page 1, and there are other pages
-    if (curPage === 1 && numPages > 1) {
-      return btnNext;
-    }
-    // Last page
-    if (curPage === numPages && numPages > 1) {
-      return btnPrev;
-    }
-    // Other page
-    if (curPage > 1 && curPage < numPages) {
-      return btnPrev + btnNext;
-    }
-    // Page 1, and there aren't other pages
-    return '';
+    // if (curPage === 1 && numPages > 1) {
+    //   return btnNext;
+    // }
+    // // Last page
+    // if (curPage === numPages && numPages > 1) {
+    //   return btnPrev;
+    // }
+    // // Other page
+    // if (curPage > 1 && curPage < numPages) {
+    //   return btnPrev + btnNext;
+    // }
+    // // Page 1, and there aren't other pages
+    // return availableSitesBtn;
   }
 }
 
