@@ -112,21 +112,41 @@ const init = function () {
 };
 init();
 
+const isEntryIngredient = entryProperty =>
+  String(entryProperty).startsWith('ingredient');
+
+export const checkIngredient = async function (
+  entryProperty,
+  entryValue,
+  errorBlank = false
+) {
+  try {
+    if (entryValue === '' && errorBlank)
+      throw new Error('Ingredient is empty! Please fill it with some data');
+    if (!isEntryIngredient(entryProperty) || entryValue === '') return;
+    const ingArr = entryValue.split(',').map(el => el.trim());
+    console.log(ingArr);
+    if (ingArr.length !== 3)
+      throw new Error(
+        'Wrong ingredient format! Please use the correct format :)'
+      );
+    const [quantity, unit, description] = ingArr;
+    return { quantity: quantity ? +quantity : null, unit, description };
+  } catch (err) {
+    throw err;
+  }
+};
+
 export const uploadRecipe = async function (newRecipe) {
   try {
-    const ingredients = Object.entries(newRecipe)
-      .filter(
-        entry => String(entry[0]).startsWith('ingredient') && entry[1] !== ''
+    console.log(newRecipe, Object.entries(newRecipe));
+    let ingredients = await Promise.all(
+      Object.entries(newRecipe).map(
+        async entry => await checkIngredient(entry[0], entry[1], true)
       )
-      .map(ing => {
-        const ingArr = ing[1].split(',').map(el => el.trim());
-        if (ingArr.length !== 3)
-          throw new Error(
-            'Wrong ingredient format! Please use the correct format :)'
-          );
-        const [quantity, unit, description] = ingArr;
-        return { quantity: quantity ? +quantity : null, unit, description };
-      });
+    );
+    ingredients = ingredients.filter(ing => ing);
+    console.log(ingredients);
 
     const recipe = {
       title: newRecipe.title,
@@ -137,11 +157,12 @@ export const uploadRecipe = async function (newRecipe) {
       servings: +newRecipe.servings,
       ingredients,
     };
-    console.log(ingredients, newRecipe, recipe);
-    const { data } = await AJAX(`${API_URL}/?key=${API_KEY}`, recipe);
-    console.log(data);
-    state.recipe = createRecipeObject(data.recipe);
-    addBookmark(state.recipe);
+    console.log(ingredients, newRecipe, recipe, createRecipeObject(recipe));
+    state.recipe = createRecipeObject(recipe);
+    // const { data } = await AJAX(`${API_URL}/?key=${API_KEY}`, recipe);
+    // console.log(data);
+    // state.recipe = createRecipeObject(data.recipe);
+    // addBookmark(state.recipe);
   } catch (err) {
     throw err;
   }

@@ -21,10 +21,12 @@ export const AJAX = async function (url, uploadData = undefined) {
   }
 };
 
-export const timeout = function (s) {
-  return new Promise(function (_, reject) {
+export const timeout = function (s, throwErr = true) {
+  return new Promise(function (resolve, reject) {
     setTimeout(function () {
-      reject(new Error(`Request took too long! Timeout after ${s} second`));
+      if (throwErr)
+        reject(new Error(`Request took too long! Timeout after ${s} second`));
+      resolve();
     }, s * 1000);
   });
 };

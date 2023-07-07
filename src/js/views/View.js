@@ -60,18 +60,18 @@ export default class View {
     });
   }
 
-  renderSpinner = function () {
+  renderSpinner = function (clear = true) {
     const markup = `<div class="spinner">
       <svg>
         <use href="${icons}#icon-loader"></use>
       </svg>
     </div>`;
 
-    this._clear();
+    if (clear) this._clear();
     this._parentElement.insertAdjacentHTML('afterbegin', markup);
   };
 
-  renderError(message = this._errorMessage) {
+  renderError(message = this._errorMessage, clear = true) {
     const markup = `
         <div class="error">
             <div>
@@ -81,11 +81,20 @@ export default class View {
             </div>
             <p>${message}</p>
         </div>`;
-    this._clear();
-    this._parentElement.insertAdjacentHTML('afterbegin', markup);
+    if (clear) this._clear();
+    else {
+      this._parentElement.querySelector('.spinner').remove();
+      this.removeErrorElement();
+    }
+    this._parentElement.insertAdjacentHTML('beforeend', markup);
   }
 
-  renderMessage(message = this._message) {
+  removeErrorElement() {
+    if (this._parentElement.querySelector('.error'))
+      this._parentElement.querySelector('.error').remove();
+  }
+
+  renderMessage(message = this._message, clear = true) {
     const markup = `
     <div class="message">
         <div>
@@ -96,7 +105,16 @@ export default class View {
         <p>${message}</p>
     </div>
   `;
-    this._clear();
-    this._parentElement.insertAdjacentHTML('afterbegin', markup);
+    if (clear) this._clear();
+    else {
+      this._parentElement.querySelector('.spinner').remove();
+      this.removeMessageELement();
+    }
+    this._parentElement.insertAdjacentHTML('beforeend', markup);
+  }
+
+  removeMessageELement() {
+    if (this._parentElement.querySelector('.message'))
+      this._parentElement.querySelector('.message').remove();
   }
 }

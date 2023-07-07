@@ -71,20 +71,33 @@ const controlBookmarks = function () {
 
 const controlAddRecipe = async function (newRecipe) {
   try {
-    addRecipeView.renderSpinner();
+    addRecipeView.removeErrorElement();
+    addRecipeView.removeMessageELement();
+    addRecipeView.renderSpinner(false);
     await model.uploadRecipe(newRecipe);
     console.log(model.state.recipe);
 
     recipeView.render(model.state.recipe);
 
-    addRecipeView._toggleWindow;
-    addRecipeView.renderMessage();
+    addRecipeView.renderMessage(undefined, false);
 
     bookmarksView.render(model.state.bookmarks);
     window.history.pushState(null, '', `#${model.state.recipe.id}`);
   } catch (err) {
     console.log('💥💥' + err.message);
-    addRecipeView.renderError(err);
+    addRecipeView.renderError(err, false);
+  }
+};
+
+const checkIngredient = async function (inputs, e) {
+  console.log(e, inputs);
+  try {
+    console.log(await model.checkIngredient(e.target.name, e.target.value));
+    addRecipeView.markInputWithCorrectValue(e.target);
+    if (e.target.value !== '' && e.target === Array.from(...inputs).at(-1))
+      await addRecipeView.renderNextIngredientlabel();
+  } catch (_) {
+    addRecipeView.markInputWithIncorrectValue(e.target);
   }
 };
 
@@ -96,5 +109,6 @@ const init = function () {
   searchView.addHandlerSearch(controlSearchResults);
   paginationView.addHandlerClick(controlPagination);
   addRecipeView.addHandlerUpload(controlAddRecipe);
+  addRecipeView.addHandlerCheckIngredientField(checkIngredient);
 };
 init();
