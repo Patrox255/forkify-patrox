@@ -122,16 +122,28 @@ export const checkIngredient = async function (
 ) {
   try {
     if (entryValue === '' && errorBlank)
-      throw new Error('Ingredient is empty! Please fill it with some data');
-    if (!isEntryIngredient(entryProperty) || entryValue === '') return;
-    const ingArr = entryValue.split(',').map(el => el.trim());
-    console.log(ingArr);
-    if (ingArr.length !== 3)
       throw new Error(
-        'Wrong ingredient format! Please use the correct format :)'
+        'Ingredient description is empty! Please fill it with some data'
       );
-    const [quantity, unit, description] = ingArr;
-    return { quantity: quantity ? +quantity : null, unit, description };
+    if (!isEntryIngredient(entryProperty)) return;
+    // const ingArr = entryValue.split(',').map(el => el.trim());
+    // console.log(ingArr);
+    // if (ingArr.length !== 3)
+    //   throw new Error(
+    //     'Wrong ingredient format! Please use the correct format :)'
+    //   );
+    // const [quantity, unit, description] = ingArr;
+    const name = entryProperty.includes('description')
+      ? 'description'
+      : entryProperty.includes('quantity')
+      ? 'quantity'
+      : 'unit';
+    const ingredientValue =
+      entryValue === '' ? (name === 'quantity' ? null : '') : entryValue;
+    // return { quantity: quantity ? +quantity : null, unit, description };
+    const ingredientObj = {};
+    ingredientObj[name] = ingredientValue;
+    return ingredientObj;
   } catch (err) {
     throw err;
   }
@@ -139,14 +151,30 @@ export const checkIngredient = async function (
 
 export const uploadRecipe = async function (newRecipe) {
   try {
-    console.log(newRecipe, Object.entries(newRecipe));
     let ingredients = await Promise.all(
-      Object.entries(newRecipe).map(
-        async entry => await checkIngredient(entry[0], entry[1], true)
-      )
+      Object.entries(newRecipe).map(async entry => {
+        if (
+          entry[0].startsWith('ingredient') &&
+          !entry[0].includes('description')
+        )
+          return await checkIngredient(entry[0], entry[1], false);
+        else return await checkIngredient(entry[0], entry[1], true);
+      })
     );
-    ingredients = ingredients.filter(ing => ing);
-    console.log(ingredients);
+    ingredients = ingredients.filter(ing => ing !== undefined);
+    ingredients = ingredients.reduce(
+      (acc, ingObj) => {
+        const [ingEntry] = Object.entries(ingObj);
+        acc.tempObj[ingEntry[0]] = ingEntry[1];
+        if (Object.entries(acc.tempObj).length === 3) {
+          acc.ingArr.push(acc.tempObj);
+          acc.tempObj = {};
+        }
+        console.log(acc, ingEntry[0], ingEntry[1]);
+        return acc;
+      },
+      { tempObj: {}, ingArr: [] }
+    ).ingArr;
 
     const recipe = {
       title: newRecipe.title,
@@ -157,12 +185,10 @@ export const uploadRecipe = async function (newRecipe) {
       servings: +newRecipe.servings,
       ingredients,
     };
-    console.log(ingredients, newRecipe, recipe, createRecipeObject(recipe));
-    state.recipe = createRecipeObject(recipe);
-    // const { data } = await AJAX(`${API_URL}/?key=${API_KEY}`, recipe);
-    // console.log(data);
-    // state.recipe = createRecipeObject(data.recipe);
-    // addBookmark(state.recipe);
+    const { data } = await AJAX(`${API_URL}/?key=${API_KEY}`, recipe);
+    console.log(data);
+    state.recipe = createRecipeObject(data.recipe);
+    addBookmark(state.recipe);
   } catch (err) {
     throw err;
   }

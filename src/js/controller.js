@@ -89,14 +89,39 @@ const controlAddRecipe = async function (newRecipe) {
   }
 };
 
-const checkIngredient = async function (inputs, e) {
-  console.log(e, inputs);
+const checkIngredient = async function (
+  ingredientRows,
+  callCheckOnNeighbourInputs,
+  e
+) {
+  console.log(e, ingredientRows);
   try {
-    console.log(await model.checkIngredient(e.target.name, e.target.value));
+    const changedIngredientRow = e.target.closest('.ingredient-row');
+    if (!changedIngredientRow) return;
+    if (callCheckOnNeighbourInputs)
+      [...changedIngredientRow.querySelectorAll('input')]
+        .filter(input => input !== e.target)
+        .forEach(input =>
+          checkIngredient(ingredientRows, false, { target: input })
+        );
+    console.log(
+      [...changedIngredientRow.querySelectorAll('input')].filter(
+        input => input !== e.target
+      )
+    );
+    let errorBlank = false;
+    if (String(e.target.name).includes('description')) errorBlank = true;
+    console.log(
+      await model.checkIngredient(e.target.name, e.target.value, errorBlank)
+    );
     addRecipeView.markInputWithCorrectValue(e.target);
-    if (e.target.value !== '' && e.target === Array.from(...inputs).at(-1))
+    if (
+      e.target.value !== '' &&
+      changedIngredientRow === [...ingredientRows].at(-1)
+    )
       await addRecipeView.renderNextIngredientlabel();
   } catch (_) {
+    console.log(_);
     addRecipeView.markInputWithIncorrectValue(e.target);
   }
 };

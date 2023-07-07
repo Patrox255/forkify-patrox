@@ -48,15 +48,22 @@ class AddRecipeView extends View {
   }
 
   addHandlerCheckIngredientField(handler) {
-    const inputs = [
-      this._parentElement
-        .querySelector('.upload__column')
-        .getElementsByTagName('input'),
-    ];
-    Array.from(...inputs).forEach(input => {
-      console.log(input);
-      this._HandlerCheckIngredientFieldEvent = handler.bind(undefined, inputs);
-      input.addEventListener('change', this._HandlerCheckIngredientFieldEvent);
+    const ingredientsRows =
+      this._parentElement.children[1].getElementsByClassName('ingredient-row');
+    console.log(ingredientsRows, [...ingredientsRows]);
+    [...ingredientsRows].forEach(ingredientsRow => {
+      console.log(Array.from(ingredientsRow.querySelectorAll('input')));
+      Array.from(ingredientsRow.querySelectorAll('input')).forEach(input => {
+        this._HandlerCheckIngredientFieldEvent = handler.bind(
+          undefined,
+          ingredientsRows,
+          true
+        );
+        input.addEventListener(
+          'change',
+          this._HandlerCheckIngredientFieldEvent
+        );
+      });
     });
   }
 
@@ -69,24 +76,27 @@ class AddRecipeView extends View {
   }
 
   _updateLabelsAfterDelete() {
-    const labels = [
-      ...this._parentElement.children[1].querySelectorAll('label'),
+    const ingredientRows = [
+      ...this._parentElement.children[1].querySelectorAll('.ingredient-row'),
     ];
-    labels.forEach(
-      (label, i) => (label.firstChild.textContent = `Ingredient ${i + 1}`)
+    ingredientRows.forEach(
+      (ingredientRow, i) =>
+        (ingredientRow.firstChild.textContent = `Ingredient ${i + 1}`)
     );
-    if (labels.length === 1)
-      labels[0].children[1].classList.remove('deletable');
+    if (ingredientRows.length === 1)
+      ingredientRows[0].children[3].classList.remove('deletable');
   }
 
   async _deleteInput(e) {
-    if (!e.target.closest('.deletable') || this._deleting) return;
-    const selectedLabel = e.target.closest('label');
-    selectedLabel.classList.add('hidden-element');
+    const selectedIngredientRow = e.target.closest('.ingredient-row');
+    const xInSelectedIngredientRow = e.target.closest('.deletable');
+    if (!xInSelectedIngredientRow || !selectedIngredientRow || this._deleting)
+      return;
+    selectedIngredientRow.classList.add('hidden-element');
     this._deleting = true;
     await timeout(1, false);
     this._deleting = false;
-    selectedLabel.remove();
+    selectedIngredientRow.remove();
     this._updateLabelsAfterDelete();
   }
 
@@ -101,41 +111,54 @@ class AddRecipeView extends View {
 
   async renderNextIngredientlabel() {
     try {
-      const labels = [
-        ...this._parentElement.children[1].querySelectorAll('label'),
+      const ingredientRows = [
+        ...this._parentElement.children[1].querySelectorAll('.ingredient-row'),
       ];
-      const labelNumber = labels.length + 1;
+      const ingredientNumber = ingredientRows.length + 1;
 
       const markup = `
-          <label class="hidden-element">Ingredient ${labelNumber}
-            <input
-              value=""
-              type="text"
-              disabled
-              name="ingredient-${labelNumber}"
-              placeholder="Format: 'Quantity,Unit,Description'"
-              class="ingredient_input" /><svg class="icon-x deletable">
-              <use href='${icons}#icon-x'></use></svg
-          ></label>
+      <div class="ingredient-row hidden-element" name="ingredient-${ingredientNumber}">
+        Ingredient ${ingredientNumber}
+        <label class="ingredient-quantity">
+          <input
+            type="number"
+            name="ingredient-${ingredientNumber}-quantity"
+            placeholder="Quantity"
+            disabled
+            step="0.01"
+          />
+        </label>
+        <label class="ingredient-unit">
+          <input type="text" name="ingredient-${ingredientNumber}-unit" placeholder="Unit" disabled/>
+        </label>
+        <label class="ingredient-description">
+          <input
+            type="text"
+            name="ingredient-${ingredientNumber}-description"
+            placeholder="Description"
+            disabled
+          />
+        </label>
+        <svg class="icon-x deletable">
+          <use href="${icons}#icon-x"></use>
+        </svg>
+      </div>
     `;
       this._parentElement.children[1].insertAdjacentHTML('beforeend', markup);
-      if (labels.length === 1)
+      if (ingredientRows.length === 1)
         this._parentElement.children[1].children[1]
           .querySelector('svg')
           .classList.add('deletable');
-      const addedLabel = [
-        ...this._parentElement.children[1].querySelectorAll('label'),
+      const addedIngredientRow = [
+        ...this._parentElement.children[1].querySelectorAll('.ingredient-row'),
       ].at(-1);
-      addedLabel.classList.remove('hidden-element');
-      console.log(addedLabel);
+      addedIngredientRow.classList.remove('hidden-element');
       await timeout(1, false);
-      const addedInput = addedLabel.children[0];
-      addedInput.addEventListener(
-        'change',
-        this._HandlerCheckIngredientFieldEvent
-      );
-      console.log(addedInput);
-      addedInput.disabled = false;
+      const addedInputs = [...addedIngredientRow.querySelectorAll('input')];
+      addedInputs.forEach(input => {
+        addEventListener('change', this._HandlerCheckIngredientFieldEvent);
+        input.disabled = false;
+      });
     } catch (err) {
       console.log(err);
     }

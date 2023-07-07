@@ -279,7 +279,31 @@
 
         <div class="upload__column">
           <h3 class="upload__heading">Ingredients</h3>
-          <label
+          <div class="ingredient-row" name="ingredient-1">
+            Ingredient 1
+            <label class="ingredient-quantity">
+              <input
+                type="number"
+                name="ingredient-1-quantity"
+                placeholder="Quantity"
+                step="0.01"
+              />
+            </label>
+            <label class="ingredient-unit">
+              <input type="text" name="ingredient-1-unit" placeholder="Unit" />
+            </label>
+            <label class="ingredient-description">
+              <input
+                type="text"
+                name="ingredient-1-description"
+                placeholder="Description"
+              />
+            </label>
+            <svg class="icon-x deletable">
+              <use></use>
+            </svg>
+          </div>
+          <!-- <label
             >Ingredient 1
             <input
               value="0.5,kg,Rice"
@@ -288,9 +312,9 @@
               placeholder="Format: 'Quantity,Unit,Description'"
               class="ingredient_input" /><svg class="icon-x deletable">
               <use></use></svg
-          ></label>
+          ></label> -->
 
-          <label
+          <!-- <label
             >Ingredient 2
             <input
               value=""
@@ -299,7 +323,32 @@
               placeholder="Format: 'Quantity,Unit,Description'"
               class="ingredient_input" /><svg class="icon-x deletable">
               <use></use></svg
-          ></label>
+          ></label> -->
+
+          <div class="ingredient-row" name="ingredient-2">
+            Ingredient 2
+            <label class="ingredient-quantity">
+              <input
+                type="number"
+                name="ingredient-2-quantity"
+                placeholder="Quantity"
+                step="0.01"
+              />
+            </label>
+            <label class="ingredient-unit">
+              <input type="text" name="ingredient-2-unit" placeholder="Unit" />
+            </label>
+            <label class="ingredient-description">
+              <input
+                type="text"
+                name="ingredient-2-description"
+                placeholder="Description"
+              />
+            </label>
+            <svg class="icon-x deletable">
+              <use></use>
+            </svg>
+          </div>
           <!-- 
           <label
             >Ingredient 3

@@ -5,7 +5,7 @@
   "default": "index.html",
   "scripts": {
     "build": "parcel build index.html --dist-dir ./dist",
-    "start": "parcel index.html"
+    "start": "parcel index.html && parcel watch index.html"
   },
   "author": "",
   "license": "ISC",
