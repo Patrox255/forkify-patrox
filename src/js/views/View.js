@@ -46,10 +46,9 @@ export default class View {
       // Updates changed TEXT
       if (
         !newEl.isEqualNode(curEl) &&
-        newEl.firstChild?.nodeValue.trim() !== ''
-      ) {
-        curEl.textContent = newEl.textContent;
-      }
+        newEl.firstChild?.nodeValue?.trim() !== ''
+      )
+        curEl.innerHTML = newEl.innerHTML;
 
       // Updates changed ATTRIBUTES
       if (!newEl.isEqualNode(curEl)) {
@@ -68,7 +67,7 @@ export default class View {
     </div>`;
 
     if (clear) this._clear();
-    this._parentElement.insertAdjacentHTML('afterbegin', markup);
+    this._parentElement.insertAdjacentHTML('beforeend', markup);
   };
 
   renderError(message = this._errorMessage, clear = true) {

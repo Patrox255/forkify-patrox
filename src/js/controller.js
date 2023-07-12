@@ -5,6 +5,8 @@ import resultsView from './views/resultsView.js';
 import bookmarksView from './views/bookmarksView.js';
 import paginationView from './views/paginationView.js';
 import addRecipeView from './views/addRecipeView.js';
+import shoppingListView from './views/shoppingListView.js';
+import previewView from './views/previewView.js';
 
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
@@ -51,9 +53,19 @@ const controlPagination = function (goToPage) {
   paginationView.render(model.state.search);
 };
 
-const controlServings = function (newServings) {
-  model.updateServings(newServings);
-  recipeView.update(model.state.recipe);
+const controlServings = function (
+  newServings,
+  recipeLocalization = 'recipePage',
+  recipeId = 0
+) {
+  if (recipeLocalization === 'recipePage') {
+    model.updateServings(newServings);
+    recipeView.update(model.state.recipe);
+  }
+  if (recipeLocalization === 'shoppingList') {
+    model.updateServings(newServings, recipeLocalization, recipeId);
+    shoppingListView.update(model.state.shoppingList);
+  }
 };
 
 const controlAddBookmark = function () {
@@ -126,14 +138,39 @@ const checkIngredient = async function (
   }
 };
 
+const controlAddRecipeToShoppingList = function (recipe = model.state.recipe) {
+  model.addRecipeToShoppingList(recipe);
+  recipeView.changeShoppingListIcon();
+};
+
+const controlRemoveRecipeFromShoppingList = function (
+  recipe = model.state.recipe
+) {
+  model.removeRecipeFromShoppingList(recipe);
+  recipeView.changeShoppingListIcon();
+};
+
+const controlOpenShoppingList = function () {
+  shoppingListView.render(model.state.shoppingList);
+  window.location.hash = '';
+  bookmarksView.update(model.state.bookmarks);
+  resultsView.update(model.getSearchResultsPage());
+};
+
 const init = function () {
   bookmarksView.addHandlerRender(controlBookmarks);
   recipeView.addHandlerRender(controlRecipes);
   recipeView.addHandlerUpdateServings(controlServings);
   recipeView.addHandlerAddBookmark(controlAddBookmark);
+  recipeView.addHandlerAddOrDeleteRecipeToShoppingList(
+    controlAddRecipeToShoppingList,
+    controlRemoveRecipeFromShoppingList
+  );
   searchView.addHandlerSearch(controlSearchResults);
   paginationView.addHandlerClick(controlPagination);
   addRecipeView.addHandlerUpload(controlAddRecipe);
   addRecipeView.addHandlerCheckIngredientField(checkIngredient);
+  shoppingListView.addHandlerOpenShoppingList(controlOpenShoppingList);
+  shoppingListView.addHandlerChangeServings(controlServings);
 };
 init();

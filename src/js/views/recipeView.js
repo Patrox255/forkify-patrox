@@ -56,11 +56,19 @@ class RecipeView extends View {
         </div>
 
         <div class="recipe__user-generated" >
-        <svg class=${this._data.key ? '' : ' hidden'}>
-          <use href="${icons}#icon-user"></use>
-        </svg>
-      </div>
+          <svg class=${this._data.key ? '' : ' hidden'}>
+            <use href="${icons}#icon-user"></use>
+          </svg>
+        </div>
       
+        
+        <button class="btn--round btn--shopping--list">
+          <svg class="">
+            <use href="${icons}#icon-cart${
+      this._data.addedToShoppingList ? '-fill' : ''
+    }"></use>
+          </svg>
+        </button>
         
         <button class="btn--round btn--bookmark">
           <svg class="">
@@ -69,13 +77,14 @@ class RecipeView extends View {
     }"></use>
           </svg>
         </button>
+
       </div>
 
       <div class="recipe__ingredients">
         <h2 class="heading--2">Recipe ingredients</h2>
         <ul class="recipe__ingredient-list">
           ${this._data.ingredients
-            .map(ing => this._generateMarkupIngredient(ing))
+            .map(ing => this.generateMarkupIngredient(ing))
             .join('')}
         </ul>
       </div>
@@ -102,12 +111,9 @@ class RecipeView extends View {
       </div>`;
   }
 
-  _generateMarkupIngredient(ing) {
+  generateMarkupIngredient(ing) {
     return `
         <li class="recipe__ingredient">
-          <svg class="recipe__icon">
-            <use ${icons}on-check"></use>
-          </svg>
           <div class="recipe__quantity">${
             ing.quantity ? new Fraction(ing.quantity).toFraction(true) : ''
           }</div>
@@ -121,7 +127,9 @@ class RecipeView extends View {
 
   addHandlerUpdateServings(handler) {
     this._parentElement.addEventListener('click', function (e) {
-      const btn = e.target.closest('.btn--update-servings');
+      const btn =
+        !e.target.closest('.shopping-list_recipe') &&
+        e.target.closest('.btn--update-servings');
       if (!btn) return;
       const { updateTo } = btn.dataset;
       if (+updateTo > 0) handler(+updateTo);
@@ -134,6 +142,25 @@ class RecipeView extends View {
       if (!btn) return;
       handler();
     });
+  }
+
+  addHandlerAddOrDeleteRecipeToShoppingList(handlerAdd, handlerDelete) {
+    this._parentElement.addEventListener('click', function (e) {
+      const btn = e.target.closest('.btn--shopping--list');
+      if (!btn) return;
+      if (btn.querySelector('use').getAttribute('href').includes('fill'))
+        handlerDelete();
+      else handlerAdd();
+    });
+  }
+
+  changeShoppingListIcon() {
+    const svgUseEl = this._parentElement
+      .querySelector('.btn--shopping--list')
+      .querySelector('use');
+    let newPath = `${icons}#icon-cart`;
+    if (!svgUseEl.getAttribute('href').includes('fill')) newPath += '-fill';
+    svgUseEl.setAttribute('href', newPath);
   }
 
   addHandlerRender(handler) {

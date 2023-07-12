@@ -1,5 +1,7 @@
 .recipe {
   background-color: $color-grey-light-1;
+  overflow-y: scroll;
+  overflow-x: hidden;
 
   ///////////
   // FIGURE
@@ -109,8 +111,7 @@
     width: 4rem;
     border-radius: 10rem;
 
-    margin-left: auto;
-    margin-right: 1.75rem;
+    margin-left: 2rem;
 
     svg {
       height: 2.25rem;

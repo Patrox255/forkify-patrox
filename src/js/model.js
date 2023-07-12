@@ -12,6 +12,7 @@ export const state = {
     resPerPage: RES_PER_PAGE,
   },
   bookmarks: [],
+  shoppingList: [],
 };
 
 const createRecipeObject = function (recipe) {
@@ -38,6 +39,13 @@ export const loadRecipe = async function (id) {
     if (state.bookmarks.some(bookmark => bookmark.id === state.recipe.id))
       state.recipe.bookmarked = true;
     else state.recipe.bookmarked = false;
+    if (
+      state.shoppingList.some(
+        shoppingListRecipe => shoppingListRecipe.id === id
+      )
+    )
+      state.recipe.addedToShoppingList = true;
+    else state.recipe.addedToShoppingList = false;
   } catch (err) {
     console.error(`${err} 💥💥💥💥`);
     throw err;
@@ -73,14 +81,23 @@ export const getSearchResultsPage = function (page = state.search.page) {
   return state.search.results.slice(start, end);
 };
 
-export const updateServings = function (newServings) {
-  state.recipe.ingredients.forEach(
+export const updateServings = function (
+  newServings,
+  recipeLocalization = 'recipePage',
+  recipeId = 0
+) {
+  let recipe;
+  if (recipeLocalization === 'recipePage') recipe = state.recipe;
+  if (recipeLocalization === 'shoppingList')
+    recipe = state.shoppingList.find(recipeObj => recipeObj.id === recipeId);
+
+  recipe.ingredients.forEach(
     ingredient =>
       (ingredient.quantity =
-        (newServings / state.recipe.servings) * ingredient.quantity)
+        (newServings / recipe.servings) * ingredient.quantity)
   );
 
-  state.recipe.servings = newServings;
+  recipe.servings = newServings;
 };
 
 const persistBookmarks = function () {
@@ -107,8 +124,10 @@ const clearBookmarks = function () {
 
 const init = function () {
   // clearBookmarks();
-  const storage = localStorage.getItem('bookmarks');
-  if (storage) state.bookmarks = JSON.parse(storage);
+  const bookmarksStorage = localStorage.getItem('bookmarks');
+  const shoppingListStorage = localStorage.getItem('shoppingList');
+  if (bookmarksStorage) state.bookmarks = JSON.parse(bookmarksStorage);
+  if (shoppingListStorage) state.shoppingList = JSON.parse(shoppingListStorage);
 };
 init();
 
@@ -192,4 +211,29 @@ export const uploadRecipe = async function (newRecipe) {
   } catch (err) {
     throw err;
   }
+};
+
+export const addRecipeToShoppingList = function (recipe) {
+  console.log(recipe);
+  const shoppingListObj = {
+    id: recipe.id,
+    image: recipe.image,
+    ingredients: recipe.ingredients,
+    servings: recipe.servings,
+    title: recipe.title,
+    ...(recipe.key && { key: recipe.key }),
+  };
+  state.recipe.addedToShoppingList = true;
+  state.shoppingList.push(shoppingListObj);
+  console.log(state.shoppingList);
+  localStorage.setItem('shoppingList', JSON.stringify(state.shoppingList));
+};
+
+export const removeRecipeFromShoppingList = function (recipe) {
+  state.shoppingList = state.shoppingList.filter(
+    shoppingListRecipe => shoppingListRecipe.id !== recipe.id
+  );
+  state.recipe.addedToShoppingList = false;
+  console.log(state.shoppingList);
+  localStorage.setItem('shoppingList', JSON.stringify(state.shoppingList));
 };
