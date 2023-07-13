@@ -30,3 +30,7 @@ export const timeout = function (s, throwErr = true) {
     }, s * 1000);
   });
 };
+
+export const toggleManyCSSClasses = function (element, ...classes) {
+  classes.forEach(cssClass => element.classList.toggle(cssClass));
+};

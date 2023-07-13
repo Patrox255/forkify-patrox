@@ -74,6 +74,31 @@
                 <span>Shopping list</span>
               </button>
             </li>
+            <li class="nav__item nav__item__calendar">
+              <button class="nav__btn nav__btn--calendar">
+                <svg class="nav__icon">
+                  <use href="src/img/icons.svg#icon-calendar-color"></use>
+                </svg>
+                <span>Recipe calendar</span>
+              </button>
+              <form id="nav__item__calendar__form">
+                <input type="date" id="nav__item__calendar__form__calendar" />
+                <div id="nav__item__calendar__form__controls">
+                  <input
+                    class="btn--small"
+                    type="button"
+                    value="Get recipe from this day"
+                    id="get__recipe__from__calendar"
+                  />
+                  <input
+                    class="btn--small"
+                    type="button"
+                    value="Delete recipe from this day"
+                    id="delete__recipe__from__calendar"
+                  />
+                </div>
+              </form>
+            </li>
           </ul>
         </nav>
       </header>
@@ -397,5 +422,6 @@
         </button>
       </form>
     </div>
+    <div class="calendar-recipe-selection-window hidden-block"></div>
   </body>
 </html>

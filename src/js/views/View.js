@@ -70,7 +70,11 @@ export default class View {
     this._parentElement.insertAdjacentHTML('beforeend', markup);
   };
 
-  renderError(message = this._errorMessage, clear = true) {
+  renderError(
+    message = this._errorMessage,
+    clear = true,
+    customEl = this._parentElement
+  ) {
     const markup = `
         <div class="error">
             <div>
@@ -82,15 +86,16 @@ export default class View {
         </div>`;
     if (clear) this._clear();
     else {
-      this._parentElement.querySelector('.spinner').remove();
-      this.removeErrorElement();
+      const spinner = customEl.querySelector('.spinner');
+      if (spinner) customEl.querySelector('.spinner').remove();
+      this.removeErrorElement(customEl);
     }
-    this._parentElement.insertAdjacentHTML('beforeend', markup);
+    customEl.insertAdjacentHTML('beforeend', markup);
   }
 
-  removeErrorElement() {
-    if (this._parentElement.querySelector('.error'))
-      this._parentElement.querySelector('.error').remove();
+  removeErrorElement(customEl = this._parentElement) {
+    if (customEl.querySelector('.error'))
+      customEl.querySelector('.error').remove();
   }
 
   renderMessage(message = this._message, clear = true) {

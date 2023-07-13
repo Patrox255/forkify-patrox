@@ -7,6 +7,7 @@ import paginationView from './views/paginationView.js';
 import addRecipeView from './views/addRecipeView.js';
 import shoppingListView from './views/shoppingListView.js';
 import previewView from './views/previewView.js';
+import calendarView from './views/calendarView.js';
 
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
@@ -157,6 +158,99 @@ const controlOpenShoppingList = function () {
   resultsView.update(model.getSearchResultsPage());
 };
 
+const hideCalendarOverlay = function () {
+  console.log(model.state.overlay.state);
+  if (model.state.overlay.state) {
+    calendarView.toggleSelectingCalendarRecipeDOMElements();
+    model.eraseStateOfAppOverlay();
+    console.log(model.state.overlay);
+  }
+};
+
+const controlCalendar = function (
+  date,
+  operation,
+  type = '',
+  recipeId = 0,
+  recipeKey = 0
+) {
+  let availableTypesForChosenDate;
+  if (operation === 'get' || operation === 'delete') {
+    calendarView.removeErrorElement(calendarView._navCalendarChooseForm);
+    if (!date)
+      return calendarView.renderError(
+        'You have to pick date which you want to select recipe from!',
+        false,
+        calendarView._navCalendarChooseForm
+      );
+    calendarView.state = operation;
+    availableTypesForChosenDate =
+      model.generateAvailableTypesForChosenDate(date);
+    if (
+      !availableTypesForChosenDate ||
+      availableTypesForChosenDate.length === 0
+    )
+      return calendarView.renderError(
+        'There are no recipes associated with this date!',
+        false,
+        calendarView._navCalendarChooseForm
+      );
+  }
+  if (operation === 'get recipe') {
+    const chosenRecipeInfo = model.getRecipeInfoFromCalendar(type);
+    eraseCalendarViewState();
+    window.location.hash = chosenRecipeInfo.recipeId;
+    controlRecipes();
+    return;
+  }
+  if (operation === 'delete recipe') {
+    model.deleteRecipeFromCalendar(type);
+    eraseCalendarViewState();
+    model.persistCalendarRecipes();
+    return;
+  }
+  console.log(model.state);
+  date ||= model.state.overlay?.date;
+  recipeId ||= model.state.overlay?.recipeInfo?.id;
+  recipeKey ||= model.state.overlay?.recipeInfo?.key;
+  calendarView.removeErrorElement();
+  if (operation === 'add recipe') {
+    console.log(type);
+    if (model.isAlreadyInCalendarRecipeOfSuchType(type))
+      return calendarView.renderError(
+        'There is already recipe with such type associated to this date!',
+        false
+      );
+    model.addRecipeToCalendar(type);
+    eraseCalendarViewState();
+    console.log(model.state);
+    return;
+  }
+  if (operation === 'get' || operation === 'delete')
+    calendarView.renderCalendarSelection({
+      operation,
+      availableTypesForChosenDate,
+    });
+  else calendarView.renderCalendarSelection(operation);
+  model.setStateOfAppOverlay('rendered', date, operation, {
+    id: recipeId,
+    ...(recipeKey && { key: recipeKey }),
+  });
+  console.log(model.state.overlay);
+  calendarView.state = operation;
+};
+
+const eraseCalendarViewState = function () {
+  calendarView.toggleSelectingCalendarRecipeDOMElements();
+  model.eraseStateOfAppOverlay();
+};
+
+const assignCalendarRecipeDate = function (date) {
+  calendarView.removeErrorElement();
+  if (!date) return calendarView.renderError('Choose the date!', false);
+  controlCalendar(date, 'assign recipe type');
+};
+
 const init = function () {
   bookmarksView.addHandlerRender(controlBookmarks);
   recipeView.addHandlerRender(controlRecipes);
@@ -172,5 +266,13 @@ const init = function () {
   addRecipeView.addHandlerCheckIngredientField(checkIngredient);
   shoppingListView.addHandlerOpenShoppingList(controlOpenShoppingList);
   shoppingListView.addHandlerChangeServings(controlServings);
+  calendarView.addHandlerGetRecipeFromCalendar(controlCalendar);
+  calendarView.addHandlerDeleteRecipeFromCalendar(controlCalendar);
+  calendarView.addHandlerHideCalendarOverlay(hideCalendarOverlay);
+  calendarView.addHandlerShowCalendarOverviewFromRecipeView(controlCalendar);
+  calendarView.addHandlerAssignCalendarRecipeDate(assignCalendarRecipeDate);
+  calendarView.addHandlerChooseRecipeType(controlCalendar);
+  calendarView.addHandlerChooseRecipeTypeToGet(controlCalendar);
+  calendarView.addHandlerChooseRecipeTypeToDelete(controlCalendar);
 };
 init();

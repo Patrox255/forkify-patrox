@@ -13,6 +13,16 @@ export const state = {
   },
   bookmarks: [],
   shoppingList: [],
+  overlay: {
+    state: '',
+    date: '',
+    operation: '',
+    recipeInfo: {
+      id: 0,
+      key: 0,
+    },
+  },
+  calendarRecipes: [],
 };
 
 const createRecipeObject = function (recipe) {
@@ -122,15 +132,6 @@ const clearBookmarks = function () {
   localStorage.clear('bookmarks');
 };
 
-const init = function () {
-  // clearBookmarks();
-  const bookmarksStorage = localStorage.getItem('bookmarks');
-  const shoppingListStorage = localStorage.getItem('shoppingList');
-  if (bookmarksStorage) state.bookmarks = JSON.parse(bookmarksStorage);
-  if (shoppingListStorage) state.shoppingList = JSON.parse(shoppingListStorage);
-};
-init();
-
 const isEntryIngredient = entryProperty =>
   String(entryProperty).startsWith('ingredient');
 
@@ -237,3 +238,103 @@ export const removeRecipeFromShoppingList = function (recipe) {
   console.log(state.shoppingList);
   localStorage.setItem('shoppingList', JSON.stringify(state.shoppingList));
 };
+
+export const setStateOfAppOverlay = function (
+  newState,
+  newDate = '',
+  newOperation = '',
+  recipeInfo = {}
+) {
+  console.log(recipeInfo);
+  state.overlay = {
+    state: newState,
+    date: newDate,
+    operation: newOperation,
+    recipeInfo,
+  };
+};
+
+export const eraseStateOfAppOverlay = function () {
+  state.overlay = {};
+};
+
+export const addRecipeToCalendar = function (type) {
+  // [{date: date, recipes:[{type:"", recipeId: 0, (recipeKey: 0)}}]]
+  const dateIndex = state.calendarRecipes.findIndex(
+    entry =>
+      entry.date === state.overlay.date &&
+      !entry.recipes.some(recipe => recipe.type === type)
+  );
+  const recipeToPush = {
+    type,
+    recipeId: state.overlay.recipeInfo.id,
+    ...(state.overlay.recipeInfo?.key && {
+      recipeKey: state.overlay.recipeInfo?.key,
+    }),
+  };
+  if (dateIndex === -1)
+    state.calendarRecipes.push({
+      date: state.overlay.date,
+      recipes: [recipeToPush],
+    });
+  else state.calendarRecipes[dateIndex].recipes.push(recipeToPush);
+  persistCalendarRecipes();
+};
+
+export const isAlreadyInCalendarRecipeOfSuchType = function (type) {
+  return state.calendarRecipes.some(
+    entry =>
+      entry.date === state.overlay.date &&
+      entry.recipes.some(recipe => recipe.type === type)
+  );
+};
+
+export const persistCalendarRecipes = function () {
+  localStorage.setItem(
+    'calendarRecipes',
+    JSON.stringify(state.calendarRecipes)
+  );
+};
+
+export const generateAvailableTypesForChosenDate = function (date) {
+  return state.calendarRecipes
+    .find(entry => entry.date === date)
+    ?.recipes.map(calendarRecipe => calendarRecipe.type);
+};
+
+const _getRecipeObjFromCalendar = function (type) {
+  return state.calendarRecipes
+    .find(entry => entry.date === state.overlay.date)
+    .recipes.find(calendarRecipe => calendarRecipe.type === type);
+};
+
+export const getRecipeInfoFromCalendar = function (type) {
+  console.log(state.overlay, type, state.calendarRecipes);
+  const { recipeId, recipeKey } = _getRecipeObjFromCalendar(type);
+  return { recipeId, ...(recipeKey && { recipeKey }) };
+};
+
+export const deleteRecipeFromCalendar = function (type) {
+  const recipeToDelete = _getRecipeObjFromCalendar(type);
+  const calendarRecipesEntryIndexInWhichThisRecipeIs =
+    state.calendarRecipes.findIndex(entry =>
+      entry.recipes.some(recipe => recipe === recipeToDelete)
+    );
+  state.calendarRecipes[calendarRecipesEntryIndexInWhichThisRecipeIs].recipes =
+    state.calendarRecipes[
+      calendarRecipesEntryIndexInWhichThisRecipeIs
+    ].recipes.filter(recipe => recipe !== recipeToDelete);
+  console.log(state.calendarRecipes);
+};
+
+const init = function () {
+  // clearBookmarks();
+  const bookmarksStorage = localStorage.getItem('bookmarks');
+  const shoppingListStorage = localStorage.getItem('shoppingList');
+  const calendarRecipesStorage = localStorage.getItem('calendarRecipes');
+  if (bookmarksStorage) state.bookmarks = JSON.parse(bookmarksStorage);
+  if (shoppingListStorage) state.shoppingList = JSON.parse(shoppingListStorage);
+  if (calendarRecipesStorage)
+    state.calendarRecipes = JSON.parse(calendarRecipesStorage);
+};
+init();

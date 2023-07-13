@@ -104,7 +104,8 @@
   }
 }
 
-.bookmarks {
+.bookmarks,
+#nav__item__calendar__form {
   padding: 1rem 0;
   position: absolute;
   // right: 0;
@@ -136,9 +137,45 @@
     }
   }
 
-  &:hover,
+  &:hover {
+    visibility: visible;
+    opacity: 1;
+  }
+}
+
+.bookmarks {
   .nav__btn--bookmarks:hover + & {
     visibility: visible;
     opacity: 1;
   }
+}
+
+#nav__item__calendar__form {
+  .nav__btn--calendar:hover + & {
+    visibility: visible;
+    opacity: 1;
+  }
+}
+
+#nav__item__calendar__form {
+  width: 30rem;
+  left: -10rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  row-gap: 4rem;
+  padding: 1.5rem 0;
+}
+
+.nav__btn--calendar {
+  cursor: default;
+}
+
+#nav__item__calendar__form__controls {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  row-gap: 2rem;
 }

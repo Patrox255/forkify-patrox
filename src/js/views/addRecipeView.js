@@ -31,7 +31,15 @@ class AddRecipeView extends View {
 
   _addHandlerHideWindow() {
     this._btnClose.addEventListener('click', this.toggleWindow.bind(this));
-    this._overlay.addEventListener('click', this.toggleWindow.bind(this));
+    this._overlay.addEventListener(
+      'click',
+      this._overlayClickHideWindowCallback.bind(this)
+    );
+  }
+
+  _overlayClickHideWindowCallback(e) {
+    if (e.currentTarget.classList.contains('calendar-state')) return;
+    this.toggleWindow();
   }
 
   _addHandlerDeleteInput() {
